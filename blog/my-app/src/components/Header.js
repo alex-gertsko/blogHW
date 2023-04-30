@@ -1,12 +1,16 @@
+import { Link } from "react-router-dom"
+
 const Header = function(props){
     return (
     <div className="header">
-        <a href="#">Home</a>
-        <span>|</span>
-        <a href="#">About me</a>
-        <span>|</span>
-        <a href="#">Contact Me</a>
-        <a id="Login" href="#">Login</a>
+            <Link to={'/'}>Home</Link>
+            <span>|</span>
+            <Link to={'/aboutMe'}>About me</Link>
+            <span>|</span>
+            <Link to={'/newPost'}>New post</Link>
+            <span>|</span>
+            <Link to={'/'}>Contact Me</Link>
+            <Link id="Login" to={'/'}>Login</Link>
     </div>
     )
 }
