@@ -1,8 +1,11 @@
+import { useNavigate  } from "react-router-dom"
 const Post = function(props){
+    const navigate = useNavigate();
     const {data} = props
-
+    const url = '/post/'
+    
     return(
-        <div className="post" key={data?.title + data.index ?? Date.now()}>
+        <div className="post" key={data?.title + data.index ?? Date.now()} onClick={()=>navigate(url+data.id)}>
             <div className="content">
                 <h1>{data?.title}</h1>
                 <p>{data?.data}</p>
