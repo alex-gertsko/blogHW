@@ -1,5 +1,5 @@
-import GoBackBtn from "./GoBackBtn.js";
-import Post from "./Post.js";
+import GoBackBtn from "../GoBackBtn.js";
+import Post from "../Post.js";
 import { useParams } from "react-router-dom";
 
 const SinglePostPage = (props) => {

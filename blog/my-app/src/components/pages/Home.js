@@ -1,5 +1,5 @@
-import PostWrapper from './PostWrapper';
-import LinksWrapper from './LinksWrapper';
+import PostWrapper from '../PostWrapper';
+import LinksWrapper from '../LinksWrapper';
 
 const Home = function(props){
 

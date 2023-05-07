@@ -1,12 +1,13 @@
 import './App.css';
-import Home from './components/Home';
-import AboutMe from './components/AboutMe';
-import NewPostPage from './components/NewPostPage';
+import Home from './components/pages/Home';
+import AboutMe from './components/pages/AboutMe';
+import NewPostPage from './components/pages/NewPostPage';
 import { useState } from 'react';
 import {BrowserRouter, Routes, Route} from "react-router-dom";
-import Layout from './components/Layout';
+import Layout from './components/pages/Layout';
 import { Dummylinks, dummyPosts } from './misc/dummyTools'; //for DB simulation
-import SinglePostPage from './components/SinglePostPage';
+import SinglePostPage from './components/pages/SinglePostPage';
+import LoginPage from './components/pages/LoginPage';
 
 const thereIsDataBase = false
 const userInfo = {
@@ -46,6 +47,7 @@ function App(props) {
             <Route path="aboutMe" element={<AboutMe />} />
             <Route path="newPost" element={<NewPostPage addPost={handleNewPost}/>} />
             <Route path="post/:id" element={<SinglePostPage posts={posts}/>} />
+            <Route path="login" element={<LoginPage/>} />
           </Route>
         </Routes>
       </BrowserRouter>

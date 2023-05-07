@@ -1,5 +1,5 @@
 import React from "react"
-import GoBackBtn from "./GoBackBtn"
+import GoBackBtn from "../GoBackBtn"
 import {useNavigate } from "react-router-dom"
 
 const wrongTitleAlert = 'must insert title and some description to sumbit'

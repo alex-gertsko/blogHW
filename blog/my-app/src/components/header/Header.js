@@ -10,7 +10,7 @@ const Header = function(props){
             <Link to={'/newPost'}>New post</Link>
             <span>|</span>
             <Link to={'/'}>Contact Me</Link>
-            <Link id="Login" to={'/'}>Login</Link>
+            <Link id="Login" to={'/login'}>Login</Link>
     </div>
     )
 }
