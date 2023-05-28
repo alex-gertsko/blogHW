@@ -30,7 +30,8 @@ export const Dummylinks = [
       postTime: 1,
       authorName: 'Lorem',
       imageUrl: 'https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png',
-      id: '0'
+      id: '0',
+      date: Date.now()
     },
     {
       title: 'Lorem Desc',
@@ -38,13 +39,15 @@ export const Dummylinks = [
       postTime: 2,
       authorName: 'Lorem',
       imageUrl: 'https://i0.wp.com/www.courageouschristianfather.com/wp-content/uploads/2018/06/darthvadercat-1965095.jpg?w=870&ssl=1',
-      id: '1'
+      id: '1',
+      date: Date.now()
     },
     {
       title: 'Lorem Desc',
       data: 'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Possimus, autem ipsa. Facere illum error deleniti ducimus mollitia aut tempora iure?',
       postTime: 5,
       authorName: 'Lorem',
-      id: '2'
+      id: '2',
+      date: Date.now()
     }
   ])

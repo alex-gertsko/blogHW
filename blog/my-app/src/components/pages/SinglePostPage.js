@@ -1,15 +1,15 @@
 import GoBackBtn from "../GoBackBtn.js";
 import Post from "../Post.js";
-import { useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 
 const SinglePostPage = (props) => {
-    const {posts} = props
-    const {id} = useParams()
+    const {postRef} = props
+    // const {id} = useParams()
 
     return (
         <div className="postsWrapper">
             <GoBackBtn/>
-            <Post data={posts.find(post => post.id === id)}/>
+            <Post data={postRef.current.value} isSinglePage={true}/>
         </div>
     )
 }

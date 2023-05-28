@@ -1,4 +1,5 @@
 import Link from "./Link"
+import { Stack } from "@mui/material"
 
 const LinksWrapper = function(props){
     const {sections} = props
@@ -6,7 +7,17 @@ const LinksWrapper = function(props){
 
     return (
         <div className="links">
-            {sectionIsArray ? sections.map(section => Link(section)) : 'no links'}
+            
+            <Stack
+            direction="column"
+            justifyContent="center"
+            alignItems="stretch"
+            spacing={2}
+            >
+                {sectionIsArray ? sections.map(section => Link(section)) : 'no links'}
+
+            </Stack>
+
         </div>
     )
 }
