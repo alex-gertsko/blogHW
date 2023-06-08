@@ -40,11 +40,15 @@ export default function Post(props) {
       data = postRef.current.value
     }
   const handleExpandClick = () => {
+    if (!isSinglePage){
+      postRef.current.value = data;
+      navigate(url+data.id)
+      return
+    }
     setExpanded(!expanded);
   };
 
   const handleDate = (data) => {
-    debugger
     let date = (new Date(data?.created_at)).toLocaleDateString('GR')
     if (date === 'Invalid Date'){
       date = Date.now()
@@ -90,7 +94,7 @@ export default function Post(props) {
             </IconButton>
             }
             title={`${data?.title}`}
-            subheader={handleDate(data)}
+            subheader={`${data?.authorName || ''} ${handleDate(data)}`}
         />
         <CardMedia
             component="img"
@@ -116,9 +120,7 @@ export default function Post(props) {
             aria-expanded={expanded}
             aria-label="show more"
             >
-            {isSinglePage ? <ExpandMoreIcon /> : <ReadMoreIcon onClick={()=>{postRef.current.value = data; navigate(url+data.id)}}/>}
-            {/* <ExpandMoreIcon /> */}
-            {/* <ReadMoreIcon onClick={()=>navigate(url+data.id)}/> */}
+            {isSinglePage ? <ExpandMoreIcon /> : <ReadMoreIcon/>}
             </ExpandMore>
         </CardActions>
         <Collapse in={expanded} timeout="auto" unmountOnExit>

@@ -70,3 +70,47 @@ function App(props) {
 }
 
 export default App;
+
+
+
+
+
+
+
+
+
+export async function getData(url = "") {
+  const params = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }
+  try{
+      const response = await fetch(url, params);
+      const data = await response.json()
+      return data; 
+  } catch (err){
+      console.log(err)
+      return false
+  }
+}
+
+export async function postData(url = "", data = {}) {
+  try{
+      const response = await fetch(url, {
+        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        headers: {
+          "Content-Type": "application/json",
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify(data), // body data type must match "Content-Type" header
+      });
+      // if(response.ok === false){
+      //   throw new Error(response.statusText)
+      // }
+      return response; // parses JSON response into native JavaScript objects
+  } catch(err){
+    console.log("error at posting post /n", err)
+    return false
+  }
+}

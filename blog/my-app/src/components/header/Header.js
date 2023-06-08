@@ -10,20 +10,32 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation} from "react-router-dom"
+import { useState } from 'react';
 
-
+const cookieRegex = /(sessionId=[^;]*;|sessionId=[^;]*$)/
+// let cookieInterval = null
 const pages = {
     'Home': '/',
     'New Post': '/newPost',
     'About Me':'/aboutMe'
 }
+export const loginsetter = {
+  setLogin: false
+}
+const get = async (url) => {
+  return await fetch(url, {headers: {"Content-Type": "application/json",}})
+}
+
 
 function Header() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const navigate = useNavigate()
-
+  const location = useLocation()
+  const [loggedin, setLoggedIn] = useState(false)
+  loginsetter.setLogin = setLoggedIn
+ 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -39,6 +51,41 @@ function Header() {
   const handleClick = (route) => {
     return () => {navigate(route)}
   }
+
+  const handleLogout = async () => {
+    const sessionId = document.cookie.match(cookieRegex)
+    if (sessionId === null){
+      alert('opss... something went wrong with logging out')
+      return
+    }
+    setLoggedIn(false)
+    if (location.pathname !== '/'){
+      setTimeout(() => navigate('/'), 1000)
+    }
+    try{
+      await get('/logout')
+      console.log('logged out successfully')
+    } catch (err){
+      console.log(err)
+    } finally {
+      document.cookie = 'sessionId=; Max-Age=0'
+    }
+  }
+
+  const handleLogin = async () => {
+    navigate('/login')
+    try{
+      const isLoggedIn = await get('/checklogin') 
+      if (isLoggedIn.ok){
+        setLoggedIn(true)
+        navigate('/')
+      }
+    } catch(err){
+      console.log("checking login failed")
+    }
+    
+  }
+  
 
   return (
     <AppBar position="static">
@@ -149,7 +196,8 @@ function Header() {
             >
             </Menu>
           </Box>
-          <Button color="inherit" onClick={() => navigate('/login')}>Login</Button>
+          {!loggedin ? <Button color="inherit" onClick={handleLogin}>Login</Button> :
+          <Button color="inherit" onClick={handleLogout}>Logout</Button>}
         </Toolbar>
       </Container>
     </AppBar>

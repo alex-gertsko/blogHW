@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PostWrapper from '../PostWrapper';
 import LinksWrapper from '../LinksWrapper';
+import { getData } from '../../App';
 
 const Home = function(props){
     // const [links] = useState([])
@@ -8,7 +9,7 @@ const Home = function(props){
 
     useEffect(() => {
       async function fetchData() {
-        const posts = await getData('/home')
+        const posts = await getData('/posts?limit=5')
         if (posts === false){
             return
         }
@@ -27,21 +28,3 @@ const Home = function(props){
 }
 
 export default Home
-
-
-async function getData(url = "") {
-    const params = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-    try{
-        console.log(url)
-        const response = await fetch(url, params);
-        const data = await response.json()
-        return data; 
-    } catch (err){
-        console.log(err)
-        return false
-    }
-  }

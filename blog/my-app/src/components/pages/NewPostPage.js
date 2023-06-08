@@ -4,6 +4,7 @@ import {useNavigate } from "react-router-dom"
 import { Stack, TextField, Button} from "@mui/material"
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { postData } from "../../App";
 
 const wrongTitleAlert = 'must insert title and some description to sumbit'
 
@@ -26,7 +27,10 @@ const NewPostPage = function(props){
         }
         // addPost(title.current.value, data)
         const res = await postData('/post', data)
-        if (res === false){
+        if (res.status === 401){
+            alert('you must login first')
+        }
+        if (res.ok === false){
             return
         }
         navigate('/')
@@ -89,28 +93,28 @@ export default NewPostPage
 
 
 
-async function postData(url = "", data = {}) {
-  // Default options are marked with *
-  try{
-      const response = await fetch(url, {
-        method: "POST", // *GET, POST, PUT, DELETE, etc.
-        // mode: "cors", // no-cors, *cors, same-origin
-        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        // // credentials: "same-origin", // include, *same-origin, omit
-        headers: {
-          "Content-Type": "application/json",
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        // redirect: "follow", // manual, *follow, error
-        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify(data), // body data type must match "Content-Type" header
-      });
-      if(response.ok === false){
-        throw new Error(response.statusText)
-      }
-      return response.json(); // parses JSON response into native JavaScript objects
-  } catch(err){
-    console.log("error at posting post /n", err)
-    return false
-  }
-}
+// async function postData(url = "", data = {}) {
+//   // Default options are marked with *
+//   try{
+//       const response = await fetch(url, {
+//         method: "POST", // *GET, POST, PUT, DELETE, etc.
+//         // mode: "cors", // no-cors, *cors, same-origin
+//         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+//         // // credentials: "same-origin", // include, *same-origin, omit
+//         headers: {
+//           "Content-Type": "application/json",
+//           // 'Content-Type': 'application/x-www-form-urlencoded',
+//         },
+//         // redirect: "follow", // manual, *follow, error
+//         // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+//         body: JSON.stringify(data), // body data type must match "Content-Type" header
+//       });
+//       if(response.ok === false){
+//         throw new Error(response.statusText)
+//       }
+//       return response.json(); // parses JSON response into native JavaScript objects
+//   } catch(err){
+//     console.log("error at posting post /n", err)
+//     return false
+//   }
+// }
