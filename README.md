@@ -1,9 +1,24 @@
-# Home Work 5 assignment
+# Home Work 7/8 ???
+Im not sure what number is this assignment hahah but here is a quick list of the changes:
+- Added backend
+- added login/logout mechanism
+- added toast popups for login page :)
+- added cookies!
+- added post publish restriction only for logged users
+- some minor bugs fix as well
+
+
+
+----
+(old entries)
+----
+
+# Home Work 5
 
 added `login` page using material ui
 
-(old entry)
-# Home Work 5 assignment
+
+# Home Work 4
 
 Changes done to *blog* folder:
 
