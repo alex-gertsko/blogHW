@@ -8,16 +8,16 @@ p {
   word-wrap: break-word
 }
 
-.home{
+.postsWrapper{
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   height: 100vh;
   width: 100%;
   display: grid;
   grid:
   /* "header header  header"  */
-  "blog   blog    side" 1fr
-  "blog   blog    side" 1fr
-  / 1.5fr   1.5fr 1fr;
+  "blog   blog    " 1fr
+  "blog   blog    " 1fr
+  / 1.5fr   1.5fr;
   column-gap: 2vw;
 }
 

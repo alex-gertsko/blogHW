@@ -8,9 +8,11 @@ import Layout from './components/pages/Layout';
 import { Dummylinks, dummyPosts } from './misc/dummyTools'; //for DB simulation
 import SinglePostPage from './components/pages/SinglePostPage';
 import LoginPage from './components/pages/LoginPage';
+import PostSelectionPage from './components/pages/PostSelectionPage';
 
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+
 
 let theme = createTheme(
   {
@@ -18,28 +20,10 @@ let theme = createTheme(
   }
 )
 
-// const thereIsDataBase = false
-// const userInfo = {
-//   name: 'dummy-user',
-// }
 const initDummy =  () => {
-  // if (thereIsDataBase){ //return empty values - values will be picked from database
-  //   const latestPosts =  getData('/')
-  //   return [Dummylinks, latestPosts]
-  // }
   return [Dummylinks, dummyPosts]
 }
-// let tempId = 3
-// const makePost = (title, data) => {
-//   return {
-//     title: title,
-//     data: data.text,
-//     time: Date.now(),
-//     authorName: userInfo.name,
-//     imageUrl: data.imageUrl,
-//     id: `${tempId++}`
-//   }
-// }
+
 
 function App(props) {
   const [initlink] = initDummy()
@@ -59,7 +43,9 @@ function App(props) {
               <Route index element={<Home links={links} postRef={postRef} />} /> 
               <Route path="aboutMe" element={<AboutMe />} />
               <Route path="newPost" element={<NewPostPage addPost={handleNewPost}/>} />
+              <Route path="post/update/:id" element={<NewPostPage/>} />
               <Route path="post/:id" element={<SinglePostPage postRef={postRef}/>} />
+              <Route path="personalpost" element={<PostSelectionPage/>} />
               <Route path="login" element={<LoginPage/>} />
             </Route>
           </Routes>
@@ -101,14 +87,10 @@ export async function postData(url = "", data = {}) {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         headers: {
           "Content-Type": "application/json",
-          // 'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: JSON.stringify(data), // body data type must match "Content-Type" header
       });
-      // if(response.ok === false){
-      //   throw new Error(response.statusText)
-      // }
-      return response; // parses JSON response into native JavaScript objects
+      return response; 
   } catch(err){
     console.log("error at posting post /n", err)
     return false

@@ -1,6 +1,6 @@
 import React from "react"
 import GoBackBtn from "../GoBackBtn"
-import {useNavigate } from "react-router-dom"
+import {useNavigate, useLocation } from "react-router-dom"
 import { Stack, TextField, Button} from "@mui/material"
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,6 +13,9 @@ const NewPostPage = function(props){
     const title = React.useRef('')
     const imageUrl = React.useRef('')
     const navigate = useNavigate();
+    const location = useLocation();
+    const {isUpdatePage, existingPostData} = location.state ? location.state : {}
+
 
     const handleSubmit = async () => {
         if (!title.current.value || !textData.current.value){
@@ -23,10 +26,25 @@ const NewPostPage = function(props){
             title: title.current.value,
             data: textData.current.value,
             imageUrl: imageUrl.current.value,
-            userId: 1 //TODO: change this when loggin is implemented
         }
-        // addPost(title.current.value, data)
-        const res = await postData('/post', data)
+        let res, route
+        // handle update part!
+        if (isUpdatePage){
+            res = await fetch('/post/' + existingPostData.id, 
+            {
+                method: 'PATCH',
+                headers: {
+                    "Content-Type": "application/json",
+                  },
+                body: JSON.stringify(data), 
+
+            })
+            route = '/personalpost'
+        } else {
+            // handle new post!
+            res = await postData('/post', data)
+            route = '/'
+        }
         if (res.status === 401){
             alert('you must login first')
         }
@@ -48,7 +66,7 @@ const NewPostPage = function(props){
                     required
                     id="postTitle"
                     label="Title"
-                    defaultValue=""
+                    defaultValue={existingPostData ? existingPostData.title : ""}
                     inputRef={title}
                 />
                 <TextField
@@ -56,7 +74,7 @@ const NewPostPage = function(props){
                     label="Post Text"
                     multiline
                     rows={5}
-                    defaultValue=""
+                    defaultValue={existingPostData ? existingPostData.data : ""}
                     variant="standard"
                     placeholder="Enter description here..."
                     inputRef={textData}
@@ -65,7 +83,7 @@ const NewPostPage = function(props){
                 <TextField
                     id="imageUrl"
                     label="Image Url"
-                    defaultValue=""
+                    defaultValue={existingPostData ? existingPostData.imageUrl : ""}
                     placeholder='insert image url'
                     inputRef={imageUrl}
                 />
@@ -77,7 +95,7 @@ const NewPostPage = function(props){
                 <div>
                     {/* <input type = "reset" name = "reset"  value = "Reset" onClick={()=> textData.current.value=''}/> */}
                     <Button variant="contained" onClick={handleSubmit}>
-                        Submit
+                        {isUpdatePage ? 'Update' : 'Submit'}
                     </Button>
                     <IconButton aria-label="delete" size="large" onClick={()=> textData.current.value=''}>
                         <DeleteIcon fontSize="inherit" />
@@ -89,32 +107,3 @@ const NewPostPage = function(props){
 }
 
 export default NewPostPage
-
-
-
-
-// async function postData(url = "", data = {}) {
-//   // Default options are marked with *
-//   try{
-//       const response = await fetch(url, {
-//         method: "POST", // *GET, POST, PUT, DELETE, etc.
-//         // mode: "cors", // no-cors, *cors, same-origin
-//         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-//         // // credentials: "same-origin", // include, *same-origin, omit
-//         headers: {
-//           "Content-Type": "application/json",
-//           // 'Content-Type': 'application/x-www-form-urlencoded',
-//         },
-//         // redirect: "follow", // manual, *follow, error
-//         // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-//         body: JSON.stringify(data), // body data type must match "Content-Type" header
-//       });
-//       if(response.ok === false){
-//         throw new Error(response.statusText)
-//       }
-//       return response.json(); // parses JSON response into native JavaScript objects
-//   } catch(err){
-//     console.log("error at posting post /n", err)
-//     return false
-//   }
-// }

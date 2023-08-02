@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import PostWrapper from '../PostWrapper';
-import LinksWrapper from '../LinksWrapper';
 import { getData } from '../../App';
+import { loginsetter } from '../header/Header';
 
 const Home = function(props){
-    // const [links] = useState([])
     const [posts,setPosts] = useState([])
+  
+    const checklogin = async () => {
+      const res = await getData('/checklogin')
+      if (res.login === true && loginsetter.loggedin === false){
+        await loginsetter.setLogin(true)
+      }
+      return res
+    }
+    checklogin()
 
     useEffect(() => {
       async function fetchData() {
@@ -20,9 +28,8 @@ const Home = function(props){
 
     return (
     <div className="home">
-        {posts.length > 0 ? <PostWrapper title="My First Blog" posts={posts} postRef={props.postRef}/>
+        {posts.length > 0 ? <PostWrapper  posts={posts} postRef={props.postRef}/>
                         : <p className='postsWrapper'>LOADING.....</p>}
-        <LinksWrapper sections ={props.links} />
     </div>
     )
 }

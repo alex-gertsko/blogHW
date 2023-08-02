@@ -34,7 +34,11 @@ function Header() {
   const navigate = useNavigate()
   const location = useLocation()
   const [loggedin, setLoggedIn] = useState(false)
-  loginsetter.setLogin = setLoggedIn
+  if(!Object. isFrozen(loginsetter)){
+    loginsetter.setLogin = setLoggedIn
+    loginsetter.loggedin = loggedin
+  }
+  // Object.freeze(loginsetter)
  
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -86,7 +90,11 @@ function Header() {
     
   }
   
-
+  if (loggedin){
+    pages['My Posts'] = '/personalpost'
+  } else {
+    delete pages['My Posts']
+  }
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
@@ -175,6 +183,7 @@ function Header() {
                 {page}
               </Button>
             ))}
+            
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>

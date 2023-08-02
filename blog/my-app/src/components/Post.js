@@ -11,12 +11,24 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { red } from '@mui/material/colors';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+// import ShareIcon from '@mui/icons-material/Share';
+// import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useNavigate  } from "react-router-dom"
 import { Box } from '@mui/material';
-import ReadMoreIcon from '@mui/icons-material/ReadMore';
+// import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { loginsetter } from './header/Header';
+import MoreOptionsButton from './post/MoreOptionsButton';
+
+
+const StyledCard = styled(Card)({
+  maxWidth: 345,
+  transition: '0.3s',
+  '&:hover': {
+    boxShadow: '0 8px 16px 0 rgba(0,0,0,0.2)',
+    transform: 'scale(1.05)'
+  },
+});
 
 const defaultPic = 'https://cdn.dribbble.com/users/1098005/screenshots/5337394/empty_bag_4x.jpg?compress=1&resize=400x300'
 
@@ -31,17 +43,38 @@ const ExpandMore = styled((props) => {
   }),
 }));
 
+function truncateText(text, maxWords = 30) {
+  let words = text.split(" "); // Split text into words
+  let truncatedText = '';
+
+  if (words.length > maxWords) {
+    words = words.slice(0, maxWords);
+    truncatedText = words.join(' ') + '...';
+  } else {
+    truncatedText = text;
+  }
+
+  return truncatedText;
+}
+
 export default function Post(props) {
+    
     const [expanded, setExpanded] = React.useState(false);
+    // const [expanded, setExpanded] = [false, ()=>{}]
     const navigate = useNavigate();
-    let {data, isSinglePage, postRef} = props
+    // const navigate = ()=>{}
+    let {data, isSinglePage, isPersonalPage, postRef, postsState} = props
+    
+    if (!postRef){
+      postRef = {current:0} //TODO: change this to something with routing
+    }
     const url = '/post/'
     if (!data){
       data = postRef.current.value
     }
   const handleExpandClick = () => {
     if (!isSinglePage){
-      postRef.current.value = data;
+      // postRef.current.value = data;
       navigate(url+data.id)
       return
     }
@@ -81,17 +114,15 @@ export default function Post(props) {
 
   return (
     <Box my = {buttonMargin} mx={sidesMargin} className='postBox' key={data?.title + data.index ?? Date.now()}>
-        <Card  >
+        <StyledCard  onClick={() => handleExpandClick()}>
         <CardHeader
             avatar={
             <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                R
+                {data.authorName[0].toUpperCase()}
             </Avatar>
             }
             action={
-            <IconButton aria-label="settings">
-                <MoreVertIcon />
-            </IconButton>
+              isPersonalPage ?  <MoreOptionsButton postId={data.id} postsState={postsState} data={data}/> : null
             }
             title={`${data?.title}`}
             subheader={`${data?.authorName || ''} ${handleDate(data)}`}
@@ -104,55 +135,34 @@ export default function Post(props) {
         />
         <CardContent>
             <Typography variant="body2" color="text.secondary">
-            {data.data || ''}
+            {data.data ? truncateText(data.data) : ''}
             </Typography>
         </CardContent>
         <CardActions disableSpacing>
-            <IconButton aria-label="add to favorites">
+            {loginsetter.loggedin ? <IconButton aria-label="add to favorites" onClick={event => event.stopPropagation()}> 
                 <FavoriteIcon />
-            </IconButton>
-            <IconButton aria-label="share">
+            </IconButton> : <></>}
+            {/* <IconButton aria-label="share">
               <ShareIcon />
-            </IconButton>
+            </IconButton> */}
             <ExpandMore
             expand={expanded}
             onClick={handleExpandClick}
             aria-expanded={expanded}
             aria-label="show more"
             >
-            {isSinglePage ? <ExpandMoreIcon /> : <ReadMoreIcon/>}
+            {isSinglePage ? <ExpandMoreIcon /> : <></>}
             </ExpandMore>
         </CardActions>
         <Collapse in={expanded} timeout="auto" unmountOnExit>
             <CardContent>
-            <Typography paragraph>Method:</Typography>
+            
             <Typography paragraph>
-                Heat 1/2 cup of the broth in a pot until simmering, add saffron and set
-                aside for 10 minutes.
-            </Typography>
-            <Typography paragraph>
-                Heat oil in a (14- to 16-inch) paella pan or a large, deep skillet over
-                medium-high heat. Add chicken, shrimp and chorizo, and cook, stirring
-                occasionally until lightly browned, 6 to 8 minutes. Transfer shrimp to a
-                large plate and set aside, leaving chicken and chorizo in the pan. Add
-                pimentón, bay leaves, garlic, tomatoes, onion, salt and pepper, and cook,
-                stirring often until thickened and fragrant, about 10 minutes. Add
-                saffron broth and remaining 4 1/2 cups chicken broth; bring to a boil.
-            </Typography>
-            <Typography paragraph>
-                Add rice and stir very gently to distribute. Top with artichokes and
-                peppers, and cook without stirring, until most of the liquid is absorbed,
-                15 to 18 minutes. Reduce heat to medium-low, add reserved shrimp and
-                mussels, tucking them down into the rice, and cook again without
-                stirring, until mussels have opened and rice is just tender, 5 to 7
-                minutes more. (Discard any mussels that don&apos;t open.)
-            </Typography>
-            <Typography>
-                Set aside off of the heat to let rest for 10 minutes, and then serve.
+                {data.data || ''}
             </Typography>
             </CardContent>
         </Collapse>
-        </Card>
+        </StyledCard>
     </Box>
   );
 }
