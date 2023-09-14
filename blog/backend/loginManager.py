@@ -47,7 +47,7 @@ class loginManager:
         @self.app.get('/logout')
         def logout():
             session_id = request.cookies.get("sessionId")
-            if (type(session_id) != type('')):
+            if type(session_id) != type(''):
                 abort(500)
             query = "delete from sessions where id = %s"
             values = (session_id,)
@@ -55,33 +55,19 @@ class loginManager:
                 cursor = db.cursor()
                 try:
                     cursor.execute(query, values)
-                    record = cursor.fetchone()
                     db.commit()
                     cursor.close()
                     res = make_response("Cookie Removed")
-                    res.set_cookie('sessionId', session_id, max_age=0)
+                    res.set_cookie('sessionId', max_age=0)
                     return res
                 except Exception as e:
                     abort(500)
 
-
-        @self.app.get('/personalpost')
-        def getPersonalPosts():
-            id = check_login()
-            if not id:
-                abort(401)
-            # pageNumber = request.args.get('page')
-            # pageSize = request.args.get('size')
-            query = "select posts.*, users.username as authorName from posts inner join users on posts.userId = users.id where users.id = %s"
-            try:
-                res = queryDB(query, (id,))
-                if res == None:
-                    res = []
-                return res
-            except Exception as e:
-                print(e)
-                abort(500)
-
+        @self.app.get('/checklogin')
+        def checklogin():
+            if not check_login():
+                abort(403) # access denied code
+            return '200'
 
         def check_login():
             session_id = request.cookies.get("sessionId") #'1acf2e54-b8b1-4715-92ad-1b88b47b5041' #'f3d30daf-c4f7-4df1-b245-082a12f2ef15' #request.cookies.get("sessionId")
@@ -98,20 +84,30 @@ class loginManager:
                     return False
                 return record[0]
      
-        def queryDB(query: str, params: tuple):
+        def queryDB(query: str, params: tuple, numberOfRows=False):
             """
             params - query string, tuple of params in needed
             """
-            values = params
-            with self.db() as db:
-                with db.cursor() as cursor:
-                    cursor.execute(query, values)
-                    record = cursor.fetchall()
-                    if record == None: # if nothing was found
-                        return record
-                    header = [entry[0] for entry in cursor.description]
-                    ans = [makeJson(header, rec) for rec in record]
-                    return json.dumps(ans)
+            try:
+                values = params
+                with self.db() as db:
+                    with db.cursor() as cursor:
+                        cursor.execute(query, values)
+                        record = cursor.fetchall()
+                        if record == None: # if nothing was found
+                            return record
+                        header = [entry[0] for entry in cursor.description]
+                        ans = [makeJson(header, rec) for rec in record]
+                        if numberOfRows:
+                            cursor.execute("SELECT FOUND_ROWS()")
+                            totalNumber = cursor.fetchall()[0]
+                            totalNumber = totalNumber if not totalNumber == None else 0
+                            return json.dumps(ans), totalNumber
+                        return json.dumps(ans)
+            except Exception as e:
+                print(e)
+                return None
+
 
         def makeJson(colums, values):
             return json.loads(json.dumps(dict(zip(colums, stringify(values)))))
@@ -120,4 +116,4 @@ class loginManager:
             return map(lambda x: str(x), values)
 
         self.checklogin = check_login
-        self.getPersonalPosts = getPersonalPosts
+        self.queryDB = queryDB

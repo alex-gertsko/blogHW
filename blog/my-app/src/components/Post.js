@@ -9,13 +9,11 @@ import Collapse from '@mui/material/Collapse';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import {Chip} from '@mui/material';
 import { red } from '@mui/material/colors';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-// import ShareIcon from '@mui/icons-material/Share';
-// import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useNavigate  } from "react-router-dom"
 import { Box } from '@mui/material';
-// import ReadMoreIcon from '@mui/icons-material/ReadMore';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { loginsetter } from './header/Header';
 import MoreOptionsButton from './post/MoreOptionsButton';
@@ -59,22 +57,12 @@ function truncateText(text, maxWords = 30) {
 
 export default function Post(props) {
     
-    const [expanded, setExpanded] = React.useState(false);
-    // const [expanded, setExpanded] = [false, ()=>{}]
-    const navigate = useNavigate();
-    // const navigate = ()=>{}
-    let {data, isSinglePage, isPersonalPage, postRef, postsState} = props
-    
-    if (!postRef){
-      postRef = {current:0} //TODO: change this to something with routing
-    }
-    const url = '/post/'
-    if (!data){
-      data = postRef.current.value
-    }
+  const [expanded, setExpanded] = React.useState(false);
+  const navigate = useNavigate();
+  let {data, isSinglePage, isPersonalPage, postsState} = props
+  const url = '/post/'
   const handleExpandClick = () => {
     if (!isSinglePage){
-      // postRef.current.value = data;
       navigate(url+data.id)
       return
     }
@@ -89,6 +77,13 @@ export default function Post(props) {
       return new Date(date).toLocaleDateString('GR')
     }
     return date
+  }
+
+  const handleTagClick = (tagName) => {
+    return e => {
+      navigate(`/post/tag/${tagName}`)
+      e.stopPropagation()
+    }
   }
 
   const baseMargin = 1
@@ -137,14 +132,19 @@ export default function Post(props) {
             <Typography variant="body2" color="text.secondary">
             {data.data ? truncateText(data.data) : ''}
             </Typography>
+            {typeof data.tag_names === 'string' && data.tag_names.trim().length > 0 && data.tag_names.split(',').map((tag, index) => (
+            <Chip 
+                key={index} 
+                label={`#${tag}`}
+                onClick={handleTagClick(tag)}
+                style={{cursor: "pointer", marginRight: "5px"}}
+            />
+        ))}
         </CardContent>
         <CardActions disableSpacing>
             {loginsetter.loggedin ? <IconButton aria-label="add to favorites" onClick={event => event.stopPropagation()}> 
                 <FavoriteIcon />
             </IconButton> : <></>}
-            {/* <IconButton aria-label="share">
-              <ShareIcon />
-            </IconButton> */}
             <ExpandMore
             expand={expanded}
             onClick={handleExpandClick}

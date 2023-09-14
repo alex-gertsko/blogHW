@@ -1,6 +1,5 @@
 from settings import dbUserName, dbPassword, dbHost, dbPost
-#import mysql.connector as mysql
-from flask import Flask, request, abort, make_response
+from flask import Flask, request, abort
 import json
 from loginManager import loginManager
 import uuid
@@ -9,14 +8,33 @@ import mysql.connector, mysql.connector.pooling
 latestQeury = 'select posts.*, users.username as authorName from posts inner join users on posts.userId = users.id ORDER BY posts.created_at DESC LIMIT 5;'
 insertRowQeury = 'insert into {table} ({fields}) values ({values})'
 fieldsToAvoid = ['id', 'created_at']
+select_tagsQuery = """SELECT 
+    SQL_CALC_FOUND_ROWS 
+    posts.*,
+    users.username as authorName,
+    COALESCE(GROUP_CONCAT(tags.name ORDER BY tags.id ASC), '') AS tag_names
+FROM 
+    posts
+INNER JOIN 
+    users ON posts.userId = users.id
+LEFT JOIN 
+    JSON_TABLE(
+        posts.tags,
+        '$[*]' COLUMNS(tag_id INT PATH '$')
+    ) AS json_tags ON TRUE
+LEFT JOIN 
+    tags ON json_tags.tag_id = tags.id
+{where}
+GROUP BY 
+    posts.id
+ORDER BY 
+    posts.created_at DESC 
+LIMIT 
+    {offset}, {limit}"""
 
-#db = mysql.connect(
-#    host = dbHost,
-#    port= dbPost,
-gg    user = dbUserName,
-#    passwd = dbPassword,
-#    database = 'blog'
-#)
+tagsWhereFilter = """WHERE 
+    JSON_SEARCH(posts.tags, 'one', {tagId}) IS NOT NULL"""
+
 pool = mysql.connector.pooling.MySQLConnectionPool(
     host = dbHost,
     port= dbPost,
@@ -28,14 +46,6 @@ pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name = "mypool"
 )
 
-# def with_connection(f):
-#     def decorated_function(*args, **kwargs):
-#         db = pool.get_connection()
-#         result = f(db, *args, **kwargs)
-#         db.close()
-#         return result
-#     return decorated_function
-
 def init():
     with pool.get_connection() as db:
         global postColumns
@@ -43,13 +53,11 @@ def init():
         try:
             cursor.execute('select * from posts limit 1')
             postColumns = extractFields(cursor)
-            # cursor.reset()
         except:
             print('init failed')
         else:
             print('init succeeded!!')
         finally:
-            # cursor.reset()
             cursor.fetchall()
             cursor.close()
 
@@ -68,27 +76,34 @@ def infinite_sequence():
             num += 1
 
 @app.get('/posts')
-def manageHomepage():
+def manageHomepage(tagId=None):
     with pool.get_connection() as db:
         gen = infinite_sequence()
-        limit = request.values.get('limit')
-        if(limit == None):
-            limit = 5
-        latestQeurylimited = latestQeury.format(limit=limit)
+        limit, offset = retrievePagintion(request)
+        query = select_tagsQuery
+        whereFilter=''
+        if not tagId == None:
+            whereFilter=tagsWhereFilter.format(tagId=tagId)
+        latestQeurylimited = query.format(limit=limit, where=whereFilter, offset=offset)
+        latestQeurylimited = latestQeurylimited.replace("\n", " ")
         cursor = db.cursor()
         cursor.execute(latestQeurylimited)
         res = cursor.fetchall()
         header = [entry[0] for entry in cursor.description]
-        cursor.close()
         data = { next(gen):x for x in map(lambda x: makeJson(header, x), res)}
-        return json.dumps(data)
+        totalNumber = getTotalRowsNumber(cursor)
+        res = {
+            "totalNumber": totalNumber if not totalNumber == None else 0,
+            "data": data
+        }
+        cursor.close()
+        return json.dumps(res)
 
 @app.route('/hello')
 def hello_world():
     return "<p>Hello, World!</p>"
 
 @app.post('/post')
-
 def addPost():
     with pool.get_connection() as db:
         body = request.json
@@ -96,13 +111,18 @@ def addPost():
         cursor = db.cursor()
         res = ''
         id = login.checklogin()
-        if not login.checklogin():
+        if not id:
             cursor.close()
             abort(401)
         body['userId'] = id
         try:
             columns = [x for x in postColumns]
             removeUnnecesaryFields(columns)
+            tags = createTags(body['tags'])
+            tags = [tag['id'] for tag in tags]
+            if tags == None:
+                abort(401)
+            body['tags'] = json.dumps(tags)
             values = tuple(body[column] for column in columns)
             placeholder = makePlaceHolder(columns)
             query = insertRowQeury.format(table=table, fields=','.join(columns), values=placeholder)
@@ -116,19 +136,36 @@ def addPost():
             cursor.close()
             return res
 
+@app.get('/personalpost')
+def getPersonalPosts():
+    id = login.checklogin()
+    if not id:
+        abort(401)
+    query = "select posts.*, users.username as authorName from posts inner join users on posts.userId = users.id where users.id = %s"
+    filter = 'where users.id = %s'
+    limit, offset = retrievePagintion(request)
+    query = select_tagsQuery.format(where=filter, limit=limit, offset=offset)
+    query = query.replace("\n", " ")
+    try:
+        res = login.queryDB(query, (id,))
+        if res == None:
+            res = []
+        return res
+    except Exception as e:
+        print(e)
+        abort(500)
+
 @app.post('/register')
 def handleRegister():
     with pool.get_connection() as db:
         try:
             username, password = request.json['username'], request.json['password']
             password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-            # password = password.decode('utf8')
             fields= ['username', 'password']
             placeholder = makePlaceHolder(fields)
             registerQeury = insertRowQeury.format(table='users', fields=','.join(fields), values=placeholder)
             with db.cursor() as cursor:
                 cursor.execute(registerQeury, tuple([username, password]))
-                #res = cursor.fetchall()
                 db.commit()
                 cursor.close()
                 return json.dumps({'status': 200, 'message': 'registered succeed'})
@@ -173,12 +210,10 @@ def deletePost(id):
         values = (id,)
         with db.cursor() as cursor:
             cursor.execute(query, values)
-            #record = cursor.fetchall()
-            #if len(record) == 0:
             db.commit()
             return {'status': 200, 'message': f"deleteding post {id} successed"}
 
-@app.route("/post/<id>" , methods = ['PATCH'])
+@app.route("/post/<id>" , methods = ['PUT'])
 def updatePost(id):
     with pool.get_connection() as db:
         userId = login.checklogin()
@@ -191,19 +226,19 @@ def updatePost(id):
         if not post['userId'] == str(userId):
             abort(403) # access denied code
         with db.cursor() as cursor:
-            # cursor.execute("select * from comments limit 1")
-            # record = cursor.fetchall()
             body = request.json
             body['userId'] = userId
+            tags = createTags(body["tags"])
+            if tags == None:
+                tags = ''
+            else:
+                tags = [tag["id"] for tag in tags]
+            body["tags"] = json.dumps(tags)
             columns = tuple(c for c in postColumns if c not in fieldsToAvoid)
-            # header = (entry[0] for entry in cursor.description)
-            # cursor.close()
-            # ans = makeJson(header, record[0])
             placeHolfers = ",".join([c+"=%s" for c in columns])
             values = tuple(str(body[field]) for field in columns)
             query = f'UPDATE posts SET {placeHolfers} where id={id}'
             cursor.execute(query, values)
-            #res = cursor.fetchall()
             db.commit()
             return {'status': 200, 'message': 'updated post {id} successfully'}
 
@@ -237,7 +272,43 @@ def getComments(id):
             data = { next(gen):x for x in map(lambda x: makeJson(header, x), res)}
             return json.dumps(data)
 
+def createTags(tags: list[int]):
+    with pool.get_connection() as db:
+        with db.cursor() as cursor:
+            try:
+                tags = [tag.lower() for tag in tags if isinstance(tag, str)] #normalize the tags
+                query = "Insert IGNORE into tags (name) values "
+                placeholder = f'({makePlaceholder(tags, "),(")})'
+                query = query + placeholder
+                cursor.execute(query, tuple(tags))
+                db.commit()
+            except Exception as e:
+                print(e)
+                return False
+    return getTags(tags)
 
+
+def getTags(tags: list[int]):
+    placeholder = makePlaceholder(tags, ", ")
+    query = f"select id, name from tags where name In ({placeholder})"
+    result = login.queryDB(query, tuple(tags))
+    if not result == None:
+        result = json.loads(result)
+    return result
+
+@app.get("/post/tag/<tagName>")
+def getPostsBytag(tagName):
+    tag = getTags([tagName])
+    if tag == None:
+        abort(404)
+    return manageHomepage(tag[0]['id'])
+
+def makePlaceholder(list: list, join = None, closure = None):
+    placeholder = ['%s']*len(list)
+    if type(join) == type(''):
+        placeholder = join.join(placeholder)
+    closure = closure if type(closure) == type('') else ''
+    return f'{closure}{placeholder}{closure}'
 
 def makeJson(colums, values):
     return json.loads(json.dumps(dict(zip(colums, stringify(values)))))
@@ -267,7 +338,32 @@ def extractValues(columns: list[str]):
 def makePlaceHolder(arr: list):
     return ('%s,'*len(arr))[:-1]
 
+def tryParseInt(element):
+    try:
+        integer = int(element)
+        return integer           
+    except Exception as e:
+        return False
+    
+def retrievePagintion(request):
+    limit = tryParseInt(request.values.get('limit'))
+    if limit == False:
+        limit = 5
+    pageNum = tryParseInt(request.values.get('page'))
+    if pageNum == False:
+        pageNum = 0
+    offset = (pageNum) * limit
+    return limit, offset
+
+def getTotalRowsNumber(cursor):
+    cursor.execute("SELECT FOUND_ROWS()")
+    totalNumber = cursor.fetchall()
+    if type(totalNumber) == type([]):
+        totalNumber = totalNumber.pop()
+    if type(totalNumber) == type(tuple()):
+        totalNumber = totalNumber[0]
+    return totalNumber
 
 if __name__ == '__main__':
     init()
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=3333)

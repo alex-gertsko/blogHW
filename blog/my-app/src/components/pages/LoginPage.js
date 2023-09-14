@@ -4,13 +4,13 @@ import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import GoBackBtn from '../GoBackBtn';
 import { Link } from 'react-router-dom';
-import { useRef, forwardRef, useState } from 'react';
+import { useRef, forwardRef, useState, useContext } from 'react';
 import { postData } from '../../App';
 import LoginIcon from '@mui/icons-material/Login';
 import { useNavigate } from 'react-router-dom';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import { loginsetter } from '../header/Header';
+import { AuthContext } from '../auth/AuthProvider';
 
 const Alert = forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -38,6 +38,7 @@ const currentAlert = {
 currentAlert.alert = currentAlert.alert.bind(currentAlert)
 
 const LoginPage = (props) => {
+    const authProvider = useContext( AuthContext )
     const [open, setOpen] = useState(false);
     const userName = useRef('')
     const password = useRef('')
@@ -56,12 +57,10 @@ const LoginPage = (props) => {
     const checkInput = (func) => {
         return async () => {
             if (userName.current.value === ''){
-                // alert('Must enter username')
                 currentAlert.alert(severities.warning, 'Must enter username')
                 return
             }
             if (password.current.value === ''){
-                // alert('must enter password')
                 currentAlert.alert(severities.warning, 'must enter password')
                 return
             }
@@ -77,9 +76,7 @@ const LoginPage = (props) => {
                 currentAlert.alert(severities.error, 'something went wrong with the login :(')
                 return false
             }
-            if(loginsetter.setLogin){
-                loginsetter.setLogin(true)
-            }
+            authProvider.login()
             currentAlert.alert(severities.success, 'Logged in successful')
             setTimeout(() => currentAlert.alert(severities.success, 'redirect to home page'), 1000)
             setTimeout(() => navigate('/'), 2000)

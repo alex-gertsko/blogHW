@@ -6,13 +6,47 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { postData } from "../../App";
 
-const wrongTitleAlert = 'must insert title and some description to sumbit'
+const MyFormHelperText = React.forwardRef(
+    function(props, ref){
+        const {defaultValue} = props
+        const [inputValue, setInputValue] = React.useState(defaultValue);
+        const [isError, setIsError] = React.useState(false);
+        const allowedNumOfLetters = 30
+
+        const handleChange = (event) => {
+          const value = event.target.value;
+          if (value.length <= allowedNumOfLetters) {
+            setInputValue(value);
+            setIsError(false);
+          } else {
+            setIsError(true);
+          }
+        };
+        
+          return (
+            <TextField
+                label="Tags (separated by , )"
+                variant="outlined"
+                value={inputValue}
+                onChange={handleChange}
+                error={isError}
+                inputRef={ref}
+                helperText={isError ? `up to ${allowedNumOfLetters} letters can be used!` : ''}
+            />
+          )
+        }
+        
+)
+
+
+const wrongTitleAlert = 'Must insert title and some description to sumbit'
 
 const NewPostPage = function(props){
     const textData = React.useRef('')
     const title = React.useRef('')
     const imageUrl = React.useRef('')
-    const navigate = useNavigate();
+    const tags = React.useRef('')
+    const navigate = useNavigate()
     const location = useLocation();
     const {isUpdatePage, existingPostData} = location.state ? location.state : {}
 
@@ -26,13 +60,14 @@ const NewPostPage = function(props){
             title: title.current.value,
             data: textData.current.value,
             imageUrl: imageUrl.current.value,
+            tags: tags.current.value.split(",").map(label => label.trim())
         }
         let res, route
         // handle update part!
         if (isUpdatePage){
             res = await fetch('/post/' + existingPostData.id, 
             {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: {
                     "Content-Type": "application/json",
                   },
@@ -53,6 +88,8 @@ const NewPostPage = function(props){
         }
         navigate('/')
     }
+    console.log('existingData is: ', existingPostData)
+
     return (
         <div className="newPost">
             <GoBackBtn/>
@@ -80,6 +117,12 @@ const NewPostPage = function(props){
                     inputRef={textData}
                 />
                 <div align='left'>
+                <div>
+                    <MyFormHelperText 
+                        ref={tags}
+                        defaultValue={existingPostData ? existingPostData['tag_names'] : ""}
+                    />
+                </div>
                 <TextField
                     id="imageUrl"
                     label="Image Url"
@@ -87,13 +130,8 @@ const NewPostPage = function(props){
                     placeholder='insert image url'
                     inputRef={imageUrl}
                 />
-                {/* <Button variant="contained" component="label">
-                    Upload
-                    <input hidden accept="image/*" multiple type="file" />
-                </Button> */}
                 </div>
                 <div>
-                    {/* <input type = "reset" name = "reset"  value = "Reset" onClick={()=> textData.current.value=''}/> */}
                     <Button variant="contained" onClick={handleSubmit}>
                         {isUpdatePage ? 'Update' : 'Submit'}
                     </Button>
@@ -107,3 +145,4 @@ const NewPostPage = function(props){
 }
 
 export default NewPostPage
+

@@ -3,35 +3,6 @@ import { TextField, Button, Typography, Box, Paper } from '@mui/material';
 import { postData, getData } from '../../App';
 import { useEffect } from 'react';
 
-const commentsData = [
-  {
-    authorName: "John Doe",
-    comment: "This is a fantastic post! Thanks for sharing.",
-    created_at: "2023-07-16T12:00:00Z"
-  },
-  // (34, 1, "This is a fantastic post! Thanks for sharing."),(34, 25, "I learned a lot from this post. Looking forward to more content like this."),(34, 4, "I have a question about the topic discussed in the post."),(34, 25, "Great post! Keep up the good work.")
-  {
-    authorName: "Jane Smith",
-    comment: "I learned a lot from this post. Looking forward to more content like this.",
-    created_at: "2023-07-16T13:00:00Z"
-  },
-  {
-    author: "Alice Johnson",
-    comment: "I have a question about the topic discussed in the post.",
-    created_at: "2023-07-16T14:00:00Z"
-  },
-  {
-    authorName: "Bob Williams",
-    comment: "Great post! Keep up the good work.",
-    created_at: "2023-07-16T15:00:00Z"
-  },
-  {
-    authorName: "Bob Williams",
-    comment: "Great post! Keep up the good work. fgjhgthbenuterrrrrrrggjh rkegerhjerj  eirgerg oier ireeriy se seio er yoe hyesuihy oieahy",
-    created_at: "2023-07-16T15:00:00Z"
-  },
-];
-
 const CommentsBox = (props) => {
     const [Comments, setComment] = React.useState('');
     const newComment = React.useRef('')
@@ -59,10 +30,11 @@ const CommentsBox = (props) => {
             newComment.current.value = ''
         }
     }
-    
-    useEffect(() => {getComments()
-    return
-    }, [])
+    const wrapper = () => getComments()
+    useEffect(() => {
+      wrapper()
+      return
+    })
 
   return (
     <Box my={2} style={{maxHeight: '80vh', overflowY: 'auto'}}>

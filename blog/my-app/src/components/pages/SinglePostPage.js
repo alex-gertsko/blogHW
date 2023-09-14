@@ -1,7 +1,5 @@
 import React from 'react';
-import { Grid,
-    //  Paper, Button, Card, CardContent, Typography, Box 
-    } from '@mui/material';
+import { Grid } from '@mui/material';
 import Post from "../Post.js";
 import { getData } from "../../App.js";
 import { useLocation } from 'react-router-dom';
@@ -31,32 +29,12 @@ const SinglePostPage = (props) => {
         })
     }
 
-
-
-//   const classes = useStyles();
-//   const history = useHistory();
-
-//   const handleGoBack = () => {
-    // history.goBack();
-//   };
-
   return (
     <div >
     {loading ? <p>loading....</p> : (failed ? <p>something went wrong....</p> :  
       <Grid container spacing={2} sx={{flexGrow: 1}}>
         <Grid item xs={12} md={6}>
-          {/* <Button className={classes.goBack} variant="outlined" onClick={handleGoBack}>Go Back</Button> */}
-          <Post data={data} isSinglePage={true}/>
-          {/* <Card className={classes.card}>
-            <CardContent>
-              <Typography gutterBottom variant="h5" component="h2">
-                Post Title
-              </Typography>
-              <Typography variant="body2" color="textSecondary" component="p">
-                This is a sample post content. More text here...
-              </Typography>
-            </CardContent>
-          </Card> */}
+          <Post data={data} isSinglePage={true}/>        
         </Grid>
         <Grid item xs={12} md={6}>
         <CommentsBox postId={id}/>

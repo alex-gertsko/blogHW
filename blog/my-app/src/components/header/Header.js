@@ -11,10 +11,10 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { useNavigate, useLocation} from "react-router-dom"
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { AuthContext } from '../auth/AuthProvider';
 
 const cookieRegex = /(sessionId=[^;]*;|sessionId=[^;]*$)/
-// let cookieInterval = null
 const pages = {
     'Home': '/',
     'New Post': '/newPost',
@@ -29,17 +29,17 @@ const get = async (url) => {
 
 
 function Header() {
+  const authProvider = useContext( AuthContext )
+  // const isAuthenticated = false
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const navigate = useNavigate()
   const location = useLocation()
   const [loggedin, setLoggedIn] = useState(false)
-  if(!Object. isFrozen(loginsetter)){
+  if(!Object.isFrozen(loginsetter)){
     loginsetter.setLogin = setLoggedIn
     loginsetter.loggedin = loggedin
   }
-  // Object.freeze(loginsetter)
- 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -69,6 +69,7 @@ function Header() {
     try{
       await get('/logout')
       console.log('logged out successfully')
+      authProvider.logout()
     } catch (err){
       console.log(err)
     } finally {
@@ -82,6 +83,7 @@ function Header() {
       const isLoggedIn = await get('/checklogin') 
       if (isLoggedIn.ok){
         setLoggedIn(true)
+        authProvider.login()
         navigate('/')
       }
     } catch(err){
@@ -90,7 +92,7 @@ function Header() {
     
   }
   
-  if (loggedin){
+  if (authProvider.isAuthenticated){
     pages['My Posts'] = '/personalpost'
   } else {
     delete pages['My Posts']
@@ -171,7 +173,7 @@ function Header() {
               textDecoration: 'none',
             }}
           >
-            LOGO
+            THE BLOG
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {Object.entries(pages).map(([page,route]) => (
@@ -205,8 +207,11 @@ function Header() {
             >
             </Menu>
           </Box>
-          {!loggedin ? <Button color="inherit" onClick={handleLogin}>Login</Button> :
-          <Button color="inherit" onClick={handleLogout}>Logout</Button>}
+          {authProvider.isAuthenticated 
+            ? <Button color="inherit" onClick={handleLogout}>Logout</Button>
+            : <Button color="inherit" onClick={handleLogin}>Login</Button> }
+          {/* {!loggedin ? <Button color="inherit" onClick={handleLogin}>Login</Button> :
+          <Button color="inherit" onClick={handleLogout}>Logout</Button>} */}
         </Toolbar>
       </Container>
     </AppBar>
