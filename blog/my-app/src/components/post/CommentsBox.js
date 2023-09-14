@@ -34,7 +34,7 @@ const CommentsBox = (props) => {
     useEffect(() => {
       wrapper()
       return
-    })
+    }, [])
 
   return (
     <Box my={2} style={{maxHeight: '80vh', overflowY: 'auto'}}>
